@@ -6,14 +6,12 @@ def print_cloud(words):
     
 def make_cloud(words):
   sorted_words = sorted(words.iteritems(), key=operator.itemgetter(1))
-  pprint(sorted_words.__class__)
-  sorted_words.reverse()
-  output = ''
-  pprint(words)
-  pprint(sorted_words)
-  for i in range(0,10):
-    pprint(sorted_words[i])
-    pprint(sorted_words[i][0])
-    output += '<span style="font-size: ' + str(sorted_words[i][1]) +'em;">' + sorted_words[i][0] + "</span>"
   
+  sorted_words.reverse()
+  output = '<form action="http://www.wordle.net/advanced" method="POST"> <textarea name="wordcounts" style="display:none">'
+
+  for i in range(0,10):
+    output += sorted_words[i][0] +':'+ str(sorted_words[i][1])
+    
+  output += '</textarea> <input type="submit" value="Woordenwolk"> </form>'
   return output
