@@ -158,13 +158,12 @@ class DocumentDisplayer(tornado.web.RequestHandler):
       lines = f.readlines()
       for l in lines:
         self.write(l)
-      #self.write(tagcloud.print_cloud(['word1', 'word2']))
-      #self.write(tagcloud.print_cloud(get_term_freq_doc(docid)))
-      searcher = application.searcher_frequency
+      searcher = application.searcher_cosine
+      
       x = get_term_freq_doc(docid, searcher)
-      pprint(x)
-      p = tagcloud.make_cloud(x)
-      self.write(p)
+      
+      tags = tagcloud.make_cloud(x)
+      self.write(tags)
 
 class LexiconDisplayer(tornado.web.RequestHandler):
     def get(self):
