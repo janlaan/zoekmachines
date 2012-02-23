@@ -161,9 +161,7 @@ class DocumentDisplayer(tornado.web.RequestHandler):
         self.write(l)
       searcher = application.searcher_cosine
       
-      x = get_term_freq_doc(docid, searcher)
-      
-      tags = tagcloud.make_cloud(x)
+      tags = tagcloud.make_cloud(docid, searcher)
       self.write(tags)
       #relatedarticles.get_related(docid, searcher)
 
