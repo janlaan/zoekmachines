@@ -37,6 +37,7 @@ import matplotlib.pyplot as plt
 from pprint import pprint
 import tagcloud
 from functions import *
+import relatedarticles
 
 # program constants
 ###############################################
@@ -163,7 +164,8 @@ class DocumentDisplayer(tornado.web.RequestHandler):
       
       tags = tagcloud.make_cloud(docid, searcher)
       self.write(tags)
-      #relatedarticles.get_related(docid, searcher)
+      relatedarticles.find_related(docid, searcher)
+      
 
 class LexiconDisplayer(tornado.web.RequestHandler):
     def get(self):

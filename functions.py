@@ -9,7 +9,7 @@ def get_keywords(docid, searcher):
   scores = calc_idf_score(idf, tf)
   sorted_scores = sorted(scores.iteritems(), key=operator.itemgetter(1))
   sorted_scores.reverse()
-  pprint(sorted_scores[0:10])
+  pprint(sorted_scores[:10])
   return sorted_scores
   
 
