@@ -16,5 +16,8 @@ def get_keywords(docid, searcher):
 def calc_idf_score(idf, tf):
   res = {}
   for t in tf:
-    res[t] = tf[t] * (10000 / idf[t])
+    if idf[t] < 20:
+      res[t] = 1
+    else:
+      res[t] = tf[t] * (10000 / idf[t])
   return res
