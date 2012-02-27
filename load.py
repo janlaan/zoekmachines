@@ -45,6 +45,7 @@ indexdir='index'
 webdir='web'
 search_file = webdir + '/search.html'
 working_dir = os.environ["PWD"]
+term_freq = ''
 
 
 # This is the cosine implementation from whoosh 0.3
@@ -87,6 +88,7 @@ def create_index(dir=indexdir, stemming=True, stopwords=None):
 
 # opening the index
 ###############################################
+#create_index(indexdir, False)
 index = open_dir(indexdir)
 
 # instantiating three searcher objects
@@ -103,9 +105,10 @@ reader = index.reader()
 
 # parsers
 ###############################################
-parser_content = qparser.QueryParser("content")
-parser_title = qparser.QueryParser("title")
-parser = qparser.MultifieldParser(['content', 'title'])
+sc = Schema(content = TEXT, title= TEXT(stored=True))
+parser_content = qparser.QueryParser("content", sc)
+parser_title = qparser.QueryParser("title", sc)
+parser = qparser.MultifieldParser(['content', 'title'], sc)
 
 # tornado request handlers
 ###############################################
@@ -153,6 +156,7 @@ class SearchHandler(tornado.web.RequestHandler):
 
 class DocumentDisplayer(tornado.web.RequestHandler):
     def get(self):
+      global term_freq
       docid=self.get_argument("docid")
       res = application.searcher_bm25f.find("id", unicode(docid))
       path = get_relative_path(res[0]['path'])
@@ -162,11 +166,9 @@ class DocumentDisplayer(tornado.web.RequestHandler):
         self.write(l)
       searcher = application.searcher_cosine
       
-      x = get_term_freq_doc(docid, searcher)
+      tags = tagcloud.make_cloud(docid, searcher, term_freq)
       
-      tags = tagcloud.make_cloud(docid, searcher)
-      
-      self.write(relatedarticles.find_related(docid, searcher))
+      self.write(relatedarticles.find_related(docid, searcher, term_freq))
       self.write(tags)
       
 
@@ -305,7 +307,6 @@ application.parser_content = parser_content
 application.parser_title = parser_title
 application.parser = parser
 
-
 # tornado http server
 # you still have to do:
 # http_server.listen(<some port number>)
@@ -428,3 +429,4 @@ def _cosine(x, y):
     print "cosine similarity: %.2f" % score
     return score
   
+term_freq = get_term_freq_col()

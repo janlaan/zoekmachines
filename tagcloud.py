@@ -2,9 +2,15 @@ import operator
 from pprint import pprint
 from functions import *
 from math import log10
-    
-def make_cloud(docid, searcher):
-  sorted_words = get_keywords(docid, searcher)
+   
+"""
+Creates a tag cloud for the given article
+
+Returns code for a wordle applet
+Applet from http://www.wordle.com
+"""
+def make_cloud(docid, searcher, term_freq):
+  sorted_words = get_keywords(docid, searcher, term_freq)
   
   output = '<div id="ac">\
     <applet \
