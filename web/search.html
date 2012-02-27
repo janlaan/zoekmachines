@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>Web search interface</title>
+</head>
+<body>
+
+<form name="myForm" action="/search" method="post">
+    <h1>Submit your query  <br /></h1> 
+    Query(string)  :<input type="text" name="query"/> <br /><br />
+    Results        :<select name="number">
+                       <option>1</option>
+                       <option selected="selected">10</option>                       
+                       <option>100</option>
+                       <option>1000</option>
+                    </select> <br /><br />
+    Field          :<select name="field">
+                       <option>title</option>
+                       <option selected="selected">content</option>                       
+                    </select> <br /> <br />        
+    Scoring        :<select name="scoring">
+                       <option>BM25F</option>
+                       <option selected="selected">Cosine</option>
+                       <option>PL2</option>
+                       <option>Frequency</option>
+                       <option>TF_IDF</option>
+                    </select> <br /><br />
+    <input type="submit"/>
+</form> 
+
+    <h1>OR  <br /></h1> 
+
+<form name="myForm2" action="/lexdisplay" method="post">
+    <h1>See full lexicon  <br /></h1> 
+    Field          :<select name="field">
+                       <option>title</option>
+                       <option>content</option>                       
+                    </select> <br /> <br />        
+ 
+    <input type="submit" value="go"/>
+</form> 
+    <h1>OR  <br /></h1> 
+<form name="myForm2" action="/index" method="post">
+    <h1>Reindex - <font color="red"> takes about three minutes! </font><br /></h1> 
+    Stemming          :<select name="stemming">
+                       <option>yes</option>
+                       <option>no</option>                       
+                    </select> <br /> <br />        
+                    <br />
+
+    Stop words        :<textarea name="stopwords" cols=40 rows = 10> </textarea>
+                    <br />
+ 
+    <input type="submit" value="Run indexing"/>
+</form> 
+</body>
+</html>
