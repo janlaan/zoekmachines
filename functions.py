@@ -1,4 +1,4 @@
-from load import get_term_freq_col, get_term_freq_doc
+from load import get_term_freq_doc
 import operator
 
 """

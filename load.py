@@ -32,7 +32,8 @@ import subprocess
 from math import sqrt
 from math import log
 import matplotlib
-matplotlib.use('Agg')
+if __name__ == "__main__":
+  matplotlib.use('Agg')
 import matplotlib.pyplot as plt 
 
 from pprint import pprint
@@ -49,6 +50,8 @@ search_file = webdir + '/search.html'
 working_dir = os.environ["PWD"]
 term_freq = ''
 
+if __name__ == "__main__":
+  print "Starting server, please wait..."
 
 # This is the cosine implementation from whoosh 0.3
 ###############################################
@@ -286,37 +289,6 @@ class Indexer(tornado.web.RequestHandler):
 class ZipfPlotter(tornado.web.RequestHandler):
     def get(self):
       pass        
-# tornado web application
-###############################################
-#settings = {"static_path" : "/home/bkovach1/nytimes_corpus/web"}
-settings = {"static_path" : webdir}
-application = tornado.web.Application([
-    (r"/", MainHandler),
-    (r"/search", SearchHandler),
-    (r"/display", DocumentDisplayer),
-    (r"/lexdisplay", LexiconDisplayer),
-    (r"/close", Closer),
-    (r"/index", Indexer),
-    (r"/termstat", TermStatisticsDisplayer)
-], **settings)
-application.index = index
-application.indexdir = indexdir
-application.searcher_bm25f = searcher_bm25f
-application.searcher_pl2 = searcher_pl2
-application.searcher_cosine = searcher_cosine
-application.searcher_tf_idf = searcher_tf_idf
-application.searcher_frequency = searcher_frequency
-application.reader = reader
-application.parser_content = parser_content
-application.parser_title = parser_title
-application.parser = parser
-
-# tornado http server
-# you still have to do:
-# http_server.listen(<some port number>)
-# tornado.ioloop.IOLoop.instance().start()
-###############################################
-http_server = tornado.httpserver.HTTPServer(application)
 
 # method to start the server on a specified port
 ###############################################
@@ -434,3 +406,37 @@ def _cosine(x, y):
     return score
   
 term_freq = get_term_freq_col()
+
+if __name__ == "__main__":
+  # tornado web application
+  ###############################################
+  #settings = {"static_path" : "/home/bkovach1/nytimes_corpus/web"}
+  settings = {"static_path" : webdir}
+  application = tornado.web.Application([
+      (r"/", MainHandler),
+      (r"/search", SearchHandler),
+      (r"/display", DocumentDisplayer),
+      (r"/lexdisplay", LexiconDisplayer),
+      (r"/close", Closer),
+      (r"/index", Indexer),
+      (r"/termstat", TermStatisticsDisplayer)
+  ], **settings)
+  application.index = index
+  application.indexdir = indexdir
+  application.searcher_bm25f = searcher_bm25f
+  application.searcher_pl2 = searcher_pl2
+  application.searcher_cosine = searcher_cosine
+  application.searcher_tf_idf = searcher_tf_idf
+  application.searcher_frequency = searcher_frequency
+  application.reader = reader
+  application.parser_content = parser_content
+  application.parser_title = parser_title
+  application.parser = parser
+  
+  # tornado http server
+  # you still have to do:
+  # http_server.listen(<some port number>)
+  # tornado.ioloop.IOLoop.instance().start()
+  ###############################################
+  http_server = tornado.httpserver.HTTPServer(application)
+  print "Server started"
