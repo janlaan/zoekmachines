@@ -1,0 +1,17 @@
+{%include "header.html" %}
+
+<h2>Statistics for term "{{ term_name }}"</h2>
+
+<p>Term found in titles: {{ str(len(title_docs)) }} times<br />
+  {% for doc in title_docs %}
+    <a href="/display?docid={{ doc['id'] }}">{{ doc['title'] }}</a><br />
+  {% end %}
+</p>
+<p>Term found in content: {{ str(len(content_docs)) }} times<br />
+  {% for doc in content_docs %}
+    <a href="/display?docid={{ doc['id'] }}">{{ doc['title'] }}</a><br />
+  {% end %}
+</p>
+
+
+{%include "footer.html" %}

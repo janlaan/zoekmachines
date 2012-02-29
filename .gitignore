@@ -1,5 +1,6 @@
 *.pyc
 *~
+web/plot.png
 data/
 dtd/
 docs/

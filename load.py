@@ -47,25 +47,23 @@ from xml.dom import minidom
 ###############################################
 indexdir='index'
 webdir='web'
-search_file = webdir + '/search.html'
-working_dir = os.environ["PWD"]
 term_freq = ''
 
 
 # This is the cosine implementation from whoosh 0.3
 ###############################################
 class Cosine(Weighting):
-    """A cosine vector-space scoring algorithm, translated into Python
-    from Terrier's Java implementation.
-    """
+  """A cosine vector-space scoring algorithm, translated into Python
+  from Terrier's Java implementation.
+  """
 
-    def score(self, searcher, fieldnum, text, docnum, weight, QTF=1):
-        idf = searcher.idf(fieldnum, text)
+  def score(self, searcher, fieldnum, text, docnum, weight, QTF=1):
+    idf = searcher.idf(fieldnum, text)
 
-        DTW = (1.0 + log(weight)) * idf
-        QMF = 1.0 # TODO: Fix this
-        QTW = ((0.5 + (0.5 * QTF / QMF))) * idf
-        return DTW * QTW
+    DTW = (1.0 + log(weight)) * idf
+    QMF = 1.0 # TODO: Fix this
+    QTW = ((0.5 + (0.5 * QTF / QMF))) * idf
+    return DTW * QTW
 
 
 # Create the index
@@ -119,9 +117,7 @@ parser = qparser.MultifieldParser(['content', 'title'], sc)
 ###############################################
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        # read the html file on every request - very inefficient
-        loader = tornado.template.Loader("web/templates/")
-        self.write(loader.load("search.html").generate())
+        self.render("search.html")
 
 class SearchHandler(tornado.web.RequestHandler):
     def post(self):
@@ -144,8 +140,7 @@ class SearchHandler(tornado.web.RequestHandler):
           raise Exception("Unsupported scoring method")
         res = searcher.find(field, unicode(query), limit=int(number))
         
-        loader = tornado.template.Loader("web/templates/")
-        self.write(loader.load("searchresults.html").generate(query=query,num_hits=number,results=res))
+        self.render("searchresults.html", query=query,num_hits=number,results=res)
 
 class DocumentDisplayer(tornado.web.RequestHandler):
     def get(self):
@@ -186,8 +181,7 @@ class DocumentDisplayer(tornado.web.RequestHandler):
       rel = relatedarticles.find_related(docid, searcher, term_freq)
       
       #Load and show relevant template
-      loader = tornado.template.Loader("web/templates/")
-      self.write(loader.load("document.html").generate(related=rel, title=str(title), content=cont, tagcloud=tags, maploc=gmaps_url, show_location=has_locs))
+      self.render("document.html",related=rel, title=str(title), content=cont, tagcloud=tags, maploc=gmaps_url, show_location=has_locs)
       
 
 class LexiconDisplayer(tornado.web.RequestHandler):
@@ -202,36 +196,23 @@ class LexiconDisplayer(tornado.web.RequestHandler):
         list_terms.append((l,
            application.reader.doc_frequency("title", l), 
            application.reader.doc_frequency("content", l)))
-      self.write("<h2>") 
-      srtd=list_terms
-      if (sort_by == "frequency_title"):
-         srtd = sorted(list_terms, key = lambda x:x[1], reverse=True)
-         self.write("<a href="+generate_term_cloud([(x[0], x[1]) for x in srtd], 150) + "> Tag cloud for the top 50 entries in the table - if it doesn't load immediately just spam \"refresh \" </a><br />")
-         self.write("<a href="+ plot([x[1] for x in srtd])+ "> Term distribution plot. </a><br />")
-      elif (sort_by == "frequency_content"):
-         srtd = sorted(list_terms, key = lambda x:x[2], reverse=True)  
-         self.write("<a href="+generate_term_cloud([(x[0], x[2]/100) for x in srtd], 150) + "> Tag cloud for the top 50 entries in the table - takes several seconds, just spam \"refresh \" </a><br />")
-         self.write("<a href="+ plot([x[2] for x in srtd])+ "> Term distribution plot. </a><br />")
-      else:
-         self.write("<a href="+ plot([x[2] for x in list_terms])+ "> Term distribution plot. </a>")
-       
-
-      self.write("</h2>")
-      self.write("<table border = \"1\">")
-      self.write("<tr>")
-      self.write("<td> # </td>")
-      self.write("<td> <a href=/lexdisplay?field="+field+"&sort_by=term> Term </a> </td>")
-      self.write("<td> <a href=/lexdisplay?field="+field+"&sort_by=frequency_title> frequency in field \"title\" </a> </td>")
-      self.write("<td> <a href=/lexdisplay?field="+field+"&sort_by=frequency_content> frequency in field \"content\" </a> </td>")
-      self.write("</tr>")
       
-      for i in range(0, len(list_terms)):
-        self.write("<tr>")
-        self.write("<td>" + str(i) + " </td>")
-        self.write("<td><a href=/termstat?term=" + srtd[i][0] + ">"+ srtd[i][0] +"</a></td>")
-        self.write("<td>"+ str(srtd[i][1]) +"</td>")
-        self.write("<td>"+ str(srtd[i][2]) +"</td>")
-        self.write("</tr>")
+      srtd=list_terms
+      tagcloud_url = None
+      
+      if (sort_by == "frequency_title"):
+        srtd = sorted(list_terms, key = lambda x:x[1], reverse=True)
+        plot_url = plot([x[1] for x in srtd])
+        tagcloud_url = generate_term_cloud([(x[0], x[1]) for x in srtd], 150)
+         
+      elif (sort_by == "frequency_content"):
+        srtd = sorted(list_terms, key = lambda x:x[2], reverse=True)
+        plot_url = plot([x[2] for x in srtd])
+        tagcloud_url = generate_term_cloud([(x[0], x[2]/100) for x in srtd], 150)
+      else:
+        plot_url = plot([x[2] for x in list_terms])
+       
+      self.render("lexicon.html", field=str(field), srtd=srtd, tagcloud_url=tagcloud_url, plot_url=plot_url)
 
 class TermStatisticsDisplayer(tornado.web.RequestHandler):
     def get(self):
@@ -241,17 +222,7 @@ class TermStatisticsDisplayer(tornado.web.RequestHandler):
       cont = application.searcher_frequency.find("content", term, limit=max(freq_cont, 1))
       titl = application.searcher_frequency.find("title", term, limit=max(freq_titl,1))
 
-      self.write("<h1>" + term + "</h1><br />")      
-      self.write("Frequency in titles: " + str(freq_titl) + "<br />")
-      for t in titl:
-        nextid = str(t['id'])
-        nexttitle = t['title']
-        self.write("<a href=/display?docid=" + nextid + ">"+ nexttitle +"</a><br />")
-      self.write("<br />Frequency in content: " + str(freq_cont) +"<br />" )    
-      for c in cont:
-        nextid = str(c['id'])
-        nexttitle = c['title']
-        self.write("<a href=/display?docid=" + nextid + ">"+ nexttitle +"</a><br />")
+      self.render("termstat.html", term_name=term, title_docs=titl, content_docs=cont)
 
 class Closer(tornado.web.RequestHandler):
     def get(self):
@@ -422,7 +393,7 @@ if __name__ == "__main__":
   # tornado web application
   ###############################################
   #settings = {"static_path" : "/home/bkovach1/nytimes_corpus/web"}
-  settings = {"static_path" : webdir}
+  settings = {"static_path" : webdir, "template_path" : webdir + '/templates'}
   application = tornado.web.Application([
       (r"/", MainHandler),
       (r"/search", SearchHandler),

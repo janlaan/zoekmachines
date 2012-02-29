@@ -1,0 +1,26 @@
+{%include "header.html" %}
+
+<h2><a href="{{ plot_url }}"> Term distribution plot. </a></h2>
+{% if tagcloud_url %}
+  <a href="{{ tagcloud_url }}">Tag cloud for the top 50 entries in the table below</a>
+{% end %}
+
+<table border="1">
+  <tr>
+    <td>#</td>
+    <td> <a href=/lexdisplay?field={{ field }}&sort_by=term> Term </a> </td>
+      <td> <a href=/lexdisplay?field={{ field }}&sort_by=frequency_title> frequency in field "title" </a> </td>
+      <td> <a href=/lexdisplay?field={{ field }}&sort_by=frequency_content> frequency in field "content" </a> </td>
+  </tr>
+
+  {% for i in range(0, len(srtd)) %}
+    <tr>
+      <td>{{ str(i) }}</td>
+      <td><a href="termstat?term={{ srtd[i][0] }}">{{ srtd[i][0] }}</a></td>
+      <td>{{ str(srtd[i][1]) }}</td>
+      <td>{{ str(srtd[i][2]) }}</td>
+    </tr>
+  {% end %}
+
+
+{%include "footer.html" %}
