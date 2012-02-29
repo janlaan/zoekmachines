@@ -1,17 +1,5 @@
 import functions
 
-def format_related_articles(res, docid):
-  if(len(res) == 0):
-    return '<p>No related articles found'
-  else:
-    out = '<br /><h3>Related articles:</h3>\
-    <ul>'
-    for r in res:
-      if r['id'] != docid: #remove the article iteself from the result set
-        out += '<li><a href="display?docid='+ r['id'] +'">'+ r['title'] +'</a></li>'
-    out += '</ul>'
-    return out
-
 """
 Find (at most 3) related articles for the article with the given docid
 
@@ -31,5 +19,9 @@ def find_related(docid, searcher, term_freq, num_keywords=3):
   #If no related articles were found, try again with one less keyword
   if(len(res) <= 1 and num_keywords > 1):
     return find_related(docid, searcher, term_freq, num_keywords - 1)
-    
-  return res #format_related_articles(res, docid)
+  
+  ret = []
+  for r in res:
+    if r['id'] != docid:
+      ret.append(r)
+  return ret
