@@ -33,6 +33,7 @@ from math import sqrt
 from math import log
 import matplotlib
 if __name__ == "__main__":
+  print "Starting server, please wait..."
   matplotlib.use('Agg')
 import matplotlib.pyplot as plt 
 
@@ -50,8 +51,6 @@ search_file = webdir + '/search.html'
 working_dir = os.environ["PWD"]
 term_freq = ''
 
-if __name__ == "__main__":
-  print "Starting server, please wait..."
 
 # This is the cosine implementation from whoosh 0.3
 ###############################################
@@ -161,6 +160,18 @@ class DocumentDisplayer(tornado.web.RequestHandler):
       dom = minidom.parse(path)
       title = dom.getElementsByTagName("title")[0].firstChild.nodeValue
       lines = dom.getElementsByTagName("block")
+      locs =  dom.getElementsByTagName("location")
+      #Extract locations
+      has_locs = False
+      gmaps_url = ''
+      if locs:
+        has_locs = True
+        locstring = ''
+        for l in locs:
+          locstring += '&markers=color:red%7Clabel:'+ l.firstChild.nodeValue[0] + '%7C' + l.firstChild.nodeValue
+        #pprint(locstring)
+        gmaps_url = '' + locstring
+        
       
       #Generate document body
       cont = ''
@@ -176,7 +187,7 @@ class DocumentDisplayer(tornado.web.RequestHandler):
       
       #Load and show relevant template
       loader = tornado.template.Loader("web/templates/")
-      self.write(loader.load("document.html").generate(related=rel, title=str(title), content=cont, tagcloud=tags))
+      self.write(loader.load("document.html").generate(related=rel, title=str(title), content=cont, tagcloud=tags, maploc=gmaps_url, show_location=has_locs))
       
 
 class LexiconDisplayer(tornado.web.RequestHandler):

@@ -1,0 +1,36 @@
+/* B8F7CF,58AC76,42855A,095725,000E05 */
+body {
+  margin: 0;
+  font-family: Verdana;
+}
+
+#header {
+  background-color: 
+}
+.navigation ul {
+  background-color: #42855A;
+  display: block;
+  width: 100%;
+  float: left;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+}
+
+.navigation ul li {
+  background-color: #58AC76;
+  float: left;
+  padding: 3px;
+  border-right: 1px solid #000;
+}
+
+.navigation ul li a {
+  text-decoration: none;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.navigation ul li:hover {
+  background-color: #B8F7CF;
+}
