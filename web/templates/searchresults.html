@@ -1,0 +1,14 @@
+{% include "header.html" %}
+
+<h2>Search results</h2>
+<p>
+Query: {{ query }}<br />
+Number of hits: {{ num_hits }}
+</p>
+<ul>
+  {% for r in results %}
+    <li><a href="display?docid={{ r['id'] }}">{{ r['title'] }}</a></li>
+  {% end %}
+</ul>
+
+{% include "footer.html" %}

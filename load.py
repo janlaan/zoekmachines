@@ -17,6 +17,7 @@ from whoosh.scoring import Frequency
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
+import tornado.template
 
 
 # other imports
@@ -38,6 +39,7 @@ from pprint import pprint
 import tagcloud
 from functions import *
 import relatedarticles
+from xml.dom import minidom
 
 # program constants
 ###############################################
@@ -105,6 +107,7 @@ reader = index.reader()
 
 # parsers
 ###############################################
+#NOTE: Maybe remove the sc/ Schema parameter on other whoosh versions
 sc = Schema(content = TEXT, title= TEXT(stored=True))
 parser_content = qparser.QueryParser("content", sc)
 parser_title = qparser.QueryParser("title", sc)
@@ -115,10 +118,8 @@ parser = qparser.MultifieldParser(['content', 'title'], sc)
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         # read the html file on every request - very inefficient
-        f = open(search_file, 'r')
-        lines = f.readlines()
-        for l in lines:
-          self.write(l) 
+        loader = tornado.template.Loader("web/templates/")
+        self.write(loader.load("search.html").generate())
 
 class SearchHandler(tornado.web.RequestHandler):
     def post(self):
@@ -140,36 +141,39 @@ class SearchHandler(tornado.web.RequestHandler):
         else:
           raise Exception("Unsupported scoring method")
         res = searcher.find(field, unicode(query), limit=int(number))
-        self.write("Query: " + query)
-        self.write("<br />")
-        self.write("Max hits: " + number)
-        self.write("<br />")
-        self.write("Scoring " + scoring)
-        self.write("<br />")
-        self.write("Field " + field)
-        self.write("<br /> <br />")
-        self.write("Number of hits:  " + str(min(int(number), len(res))) + "<br />")
-        for r in res:
-          nextid = str(r['id'])
-          nexttitle = r['title']
-          self.write("<a href=/display?docid=" + nextid + ">"+ nexttitle +"</a><br />")
+        
+        loader = tornado.template.Loader("web/templates/")
+        self.write(loader.load("searchresults.html").generate(query=query,num_hits=number,results=res))
 
 class DocumentDisplayer(tornado.web.RequestHandler):
     def get(self):
       global term_freq
-      docid=self.get_argument("docid")
+      docid = self.get_argument("docid")
       res = application.searcher_bm25f.find("id", unicode(docid))
       path = get_relative_path(res[0]['path'])
-      f = open(path, "r")
-      lines = f.readlines()
-      for l in lines:
-        self.write(l)
+      
       searcher = application.searcher_cosine
       
-      tags = tagcloud.make_cloud(docid, searcher, term_freq)
+      #Find document title and body
+      dom = minidom.parse(path)
+      title = dom.getElementsByTagName("title")[0].firstChild.nodeValue
+      lines = dom.getElementsByTagName("block")
       
-      self.write(relatedarticles.find_related(docid, searcher, term_freq))
-      self.write(tags)
+      #Generate document body
+      cont = ''
+      for l in lines:
+        if l.getAttribute("class") == "full_text":
+          for c in l.childNodes:
+            if c.firstChild:    
+              cont += "<p>" + c.firstChild.nodeValue + "</p>"
+      
+      #Generate tag cloud and related articles
+      tags = tagcloud.make_cloud(docid, searcher, term_freq)
+      rel = relatedarticles.find_related(docid, searcher, term_freq)
+      
+      #Load and show relevant template
+      loader = tornado.template.Loader("web/templates/")
+      self.write(loader.load("document.html").generate(related=rel, title=str(title), content=cont, tagcloud=tags))
       
 
 class LexiconDisplayer(tornado.web.RequestHandler):

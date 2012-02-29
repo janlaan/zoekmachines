@@ -23,7 +23,7 @@ def make_cloud(docid, searcher, term_freq):
       <param name="wordcounts" value="'
 
   for i in range(0,10):
-    output += sorted_words[i][0] +':'+ str(log10(sorted_words[i][1])) + ',' 
+    output += sorted_words[i][0] +':'+ str(sorted_words[i][1]) + ',' 
     
   output += '"/>\
       <param name="java_arguments" value="-Xmx256m -Xms64m">\

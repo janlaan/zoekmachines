@@ -1,7 +1,5 @@
 from load import get_term_freq_col, get_term_freq_doc
 import operator
-from pprint import pprint
-import time
 
 """
 Returns the keywords from any given article,

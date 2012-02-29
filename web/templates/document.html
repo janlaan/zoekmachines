@@ -1,0 +1,17 @@
+{% include "header.html" %}
+<div id="content">
+<h3>{{ title }}</h3>
+{{ content }}
+</div>
+<div id="related">
+<h3>Related Articles</h3>
+<ul>
+  {% for r in related %}
+    <li><a href="display?docid={{ r['id'] }}">{{ r['title'] }}</a></li>
+  {% end %}
+</ul>
+<h3>Tags</h3>
+{{ tagcloud }}
+</div>
+
+{% include "footer.html" %}
