@@ -1,7 +1,7 @@
 import operator
 from pprint import pprint
 from functions import *
-from math import log10
+from wordcomplete import wcomp
    
 """
 Creates a tag cloud for the given article
@@ -9,8 +9,10 @@ Creates a tag cloud for the given article
 Returns code for a wordle applet
 Applet from http://www.wordle.com
 """
-def make_cloud(docid, searcher, term_freq):
+def make_cloud(docid, searcher, term_freq, cont):
   sorted_words = get_keywords(docid, searcher, term_freq)
+  
+  print cont
   
   output = '<div id="ac">\
     <applet \
@@ -23,7 +25,8 @@ def make_cloud(docid, searcher, term_freq):
       <param name="wordcounts" value="'
 
   for i in range(0,10):
-    output += sorted_words[i][0] +':'+ str(sorted_words[i][1]) + ',' 
+    print sorted_words[i][0]
+    output += wcomp(sorted_words[i][0],cont) +':'+ str(sorted_words[i][1]) + ',' 
     
   output += '"/>\
       <param name="java_arguments" value="-Xmx256m -Xms64m">\
