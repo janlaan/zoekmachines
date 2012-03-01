@@ -1,5 +1,3 @@
-import string
-
 def searchwords(stam,lijst):
   newList = []
 
@@ -11,7 +9,8 @@ def searchwords(stam,lijst):
 
 def wcomp(stam,words):
   list = words.split()
-
+  punctuation = [',','(',')',':',';','<','>','"','?','/','!']
+  list = [''.join(c for c in s if c not in punctuation) for s in list]
   newList = searchwords(stam,list)
 
   if not newList:
@@ -20,5 +19,4 @@ def wcomp(stam,words):
   if not newList:
     return stam
   else:
-    newList = x = [''.join(c for c in s if c not in string.punctuation) for s in newList]
     return min(newList, key = len)
