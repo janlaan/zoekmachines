@@ -156,14 +156,22 @@ class DocumentDisplayer(tornado.web.RequestHandler):
       title = dom.getElementsByTagName("title")[0].firstChild.nodeValue
       lines = dom.getElementsByTagName("block")
       locs =  dom.getElementsByTagName("location")
+      
       #Extract locations
+      
+      loc_letter = []
+      loc_name = []
       has_locs = False
       gmaps_url = ''
       if locs:
         has_locs = True
         locstring = ''
+        loc_letter = []
+        loc_name = []
         for l in locs:
-          locstring += '&markers=color:red%7Clabel:'+ l.firstChild.nodeValue[0] + '%7C' + l.firstChild.nodeValue
+          loc_letter.append(l.firstChild.nodeValue[0])
+          loc_name.append(l.firstChild.nodeValue)
+          locstring += '&markers=color:red%7Clabel:'+ loc_letter[-1] + '%7C' + loc_name[-1]
         #pprint(locstring)
         gmaps_url = '' + locstring
         
@@ -183,7 +191,7 @@ class DocumentDisplayer(tornado.web.RequestHandler):
       rel = relatedarticles.find_related(docid, searcher, term_freq)
       
       #Load and show relevant template
-      self.render("document.html",related=rel, title=str(title), content=cont, tagcloud=tags, maploc=gmaps_url, show_location=has_locs)
+      self.render("document.html",related=rel, title=str(title), content=cont, tagcloud=tags, maploc=gmaps_url, show_location=has_locs, loc_letter=loc_letter, loc_name=loc_name)
       
 
 class LexiconDisplayer(tornado.web.RequestHandler):

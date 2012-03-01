@@ -11,8 +11,12 @@
   {% end %}
 </ul>
 {% if show_location == True %}
-<h3>Locations</h3>
-<img src="http://maps.googleapis.com/maps/api/staticmap?size=400x400{{ maploc }}&sensor=false" alt="location of this news item" />
+  <h3>Locations</h3>
+  <img src="http://maps.googleapis.com/maps/api/staticmap?size=400x400{{ maploc }}&sensor=false" alt="location of this news item" />
+  <br />
+  {% for i in range(len(loc_letter)) %}
+    {{ loc_letter[i] }} = {{ loc_name[i] }}, 
+  {% end %}
 {% end %}
 <h3>Tags</h3>
 {{ tagcloud }}
