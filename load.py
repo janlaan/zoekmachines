@@ -158,7 +158,6 @@ class DocumentDisplayer(tornado.web.RequestHandler):
       locs =  dom.getElementsByTagName("location")
       
       #Extract locations
-      
       loc_letter = []
       loc_name = []
       has_locs = False
@@ -172,7 +171,6 @@ class DocumentDisplayer(tornado.web.RequestHandler):
           loc_letter.append(l.firstChild.nodeValue[0])
           loc_name.append(l.firstChild.nodeValue)
           locstring += '&markers=color:red%7Clabel:'+ loc_letter[-1] + '%7C' + loc_name[-1]
-        #pprint(locstring)
         gmaps_url = '' + locstring
         
       
