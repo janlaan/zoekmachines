@@ -181,7 +181,7 @@ class DocumentDisplayer(tornado.web.RequestHandler):
         if l.getAttribute("class") == "full_text":
           for c in l.childNodes:
             if c.firstChild:    
-              cont2 += c.firstChild.nodeValue
+              cont2 += c.firstChild.nodeValue + ' '
               cont += "<p>" + c.firstChild.nodeValue + "</p>"
       
       #Generate tag cloud and related articles
