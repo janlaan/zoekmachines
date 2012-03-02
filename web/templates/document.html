@@ -1,7 +1,9 @@
 {% include "header.html" %}
 <div id="content">
 <h3>{{ title }}</h3>
-{{ content }}
+{% for p in content %}
+  <p>{{ p }}</p>
+{% end %}
 </div>
 <div id="related">
 <h3>Related Articles</h3>

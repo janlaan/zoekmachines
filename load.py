@@ -175,17 +175,15 @@ class DocumentDisplayer(tornado.web.RequestHandler):
         
       
       #Generate document body
-      cont = ''
-      cont2 = ''
+      cont = []
       for l in lines:
         if l.getAttribute("class") == "full_text":
           for c in l.childNodes:
-            if c.firstChild:    
-              cont2 += c.firstChild.nodeValue + ' '
-              cont += "<p>" + c.firstChild.nodeValue + "</p>"
+            if c.firstChild:
+              cont.append(c.firstChild.nodeValue)
       
       #Generate tag cloud and related articles
-      tags = tagcloud.make_cloud(docid, searcher, term_freq, cont2)
+      tags = tagcloud.make_cloud(docid, searcher, term_freq, ' '.join(cont))
       rel = relatedarticles.find_related(docid, searcher, term_freq)
       
       #Load and show relevant template
