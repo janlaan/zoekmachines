@@ -15,7 +15,15 @@
 <h1>Pirate Search!</h1>
 </div>
 <div class="navigation">
+<form name="myForm" action="/search" method="post">
+
 <ul>
 <li><a href="/">Home</a></li>
+<li> &nbsp; Search: <input type="text" name="query" /></li>
 </ul>
+
+<input type="hidden" name="number" value="10" />
+<input type="hidden" name="field" value="content" />
+<input type="hidden" name="scoring" value="Cosine" />
+</form>
 </div>

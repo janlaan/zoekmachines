@@ -40,6 +40,7 @@ import matplotlib.pyplot as plt
 from pprint import pprint
 import tagcloud
 from functions import *
+from locations import *
 import relatedarticles
 from xml.dom import minidom
 
@@ -144,7 +145,8 @@ class SearchHandler(tornado.web.RequestHandler):
 
 class DocumentDisplayer(tornado.web.RequestHandler):
     def get(self):
-      global term_freq
+      global term_freq, loc
+      
       docid = self.get_argument("docid")
       res = application.searcher_bm25f.find("id", unicode(docid))
       path = get_relative_path(res[0]['path'])
@@ -155,39 +157,25 @@ class DocumentDisplayer(tornado.web.RequestHandler):
       dom = minidom.parse(path)
       title = dom.getElementsByTagName("title")[0].firstChild.nodeValue
       lines = dom.getElementsByTagName("block")
-      locs =  dom.getElementsByTagName("location")
-      
-      #Extract locations
-      loc_letter = []
-      loc_name = []
-      has_locs = False
-      gmaps_url = ''
-      if locs:
-        has_locs = True
-        locstring = ''
-        loc_letter = []
-        loc_name = []
-        for l in locs:
-          loc_letter.append(l.firstChild.nodeValue[0])
-          loc_name.append(l.firstChild.nodeValue)
-          locstring += '&markers=color:red%7Clabel:'+ loc_letter[-1] + '%7C' + loc_name[-1]
-        gmaps_url = '' + locstring
-        
       
       #Generate document body
+      loc_url = ''
+      mark = False
       cont = []
+      location_hints = ['in', 'of', 'to', 'from', 'at']
       for l in lines:
         if l.getAttribute("class") == "full_text":
           for c in l.childNodes:
             if c.firstChild:
               cont.append(c.firstChild.nodeValue)
-      
-      #Generate tag cloud and related articles
+
+      #Generate tag cloud, related articles and map
       tags = tagcloud.make_cloud(docid, searcher, term_freq, ' '.join(cont))
       rel = relatedarticles.find_related(docid, searcher, term_freq)
+      map_link = loc.find_locs_in_text(" ".join(cont), application.reader)
       
       #Load and show relevant template
-      self.render("document.html",related=rel, title=str(title), content=cont, tagcloud=tags, maploc=gmaps_url, show_location=has_locs, loc_letter=loc_letter, loc_name=loc_name)
+      self.render("document.html",related=rel, title=str(title), content=cont, tagcloud=tags, maploc=map_link)
       
 
 class LexiconDisplayer(tornado.web.RequestHandler):
@@ -224,6 +212,7 @@ class TermStatisticsDisplayer(tornado.web.RequestHandler):
     def get(self):
       term = self.get_argument("term")
       freq_cont = application.reader.doc_frequency("content", term)
+      
       freq_titl = application.reader.doc_frequency("title", term)
       cont = application.searcher_frequency.find("content", term, limit=max(freq_cont, 1))
       titl = application.searcher_frequency.find("title", term, limit=max(freq_titl,1))
@@ -421,6 +410,7 @@ if __name__ == "__main__":
   application.parser_title = parser_title
   application.parser = parser
   
+  loc = LocationFinder("dataen.txt")
   # tornado http server
   # you still have to do:
   # http_server.listen(<some port number>)

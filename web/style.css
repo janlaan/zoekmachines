@@ -23,6 +23,8 @@ body {
   float: left;
   padding: 3px;
   border-right: 1px solid #000;
+  display: block;
+  height: 100%;
 }
 
 .navigation ul li a {
@@ -33,4 +35,9 @@ body {
 
 .navigation ul li:hover {
   background-color: #B8F7CF;
+}
+
+.navigation input {
+  margin: 0;
+  padding: 0;
 }
