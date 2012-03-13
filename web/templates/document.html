@@ -16,6 +16,9 @@
   <h3>Locations</h3>
   <img src="{{ maploc }}" alt="location of this news item" />
   <br />
+  {% for l in locations %}
+    {{ l[0] }} = {{ l }}
+  {% end %}
 {% end %}
 <h3>Tags</h3>
 <div id="ac">

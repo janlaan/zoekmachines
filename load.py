@@ -41,6 +41,7 @@ from pprint import pprint
 import tagcloud
 from functions import *
 from locations import *
+from timeline import *
 import relatedarticles
 from xml.dom import minidom
 
@@ -141,7 +142,9 @@ class SearchHandler(tornado.web.RequestHandler):
           raise Exception("Unsupported scoring method")
         res = searcher.find(field, unicode(query), limit=int(number))
         
-        self.render("searchresults.html", query=query,num_hits=number,results=res)
+        tm = Timeline(query.split(" "), application)
+        tm_data = tm.get_data()
+        self.render("searchresults.html", query=query,num_hits=number,results=res, timeline=tm_data)
 
 class DocumentDisplayer(tornado.web.RequestHandler):
     def get(self):
@@ -154,15 +157,12 @@ class DocumentDisplayer(tornado.web.RequestHandler):
       searcher = application.searcher_cosine
       
       #Find document title and body
+      title = res[0]['title']
       dom = minidom.parse(path)
-      title = dom.getElementsByTagName("title")[0].firstChild.nodeValue
       lines = dom.getElementsByTagName("block")
       
       #Generate document body
-      loc_url = ''
-      mark = False
       cont = []
-      location_hints = ['in', 'of', 'to', 'from', 'at']
       for l in lines:
         if l.getAttribute("class") == "full_text":
           for c in l.childNodes:
@@ -172,10 +172,10 @@ class DocumentDisplayer(tornado.web.RequestHandler):
       #Generate tag cloud, related articles and map
       tags = tagcloud.make_cloud(docid, searcher, term_freq, ' '.join(cont))
       rel = relatedarticles.find_related(docid, searcher, term_freq)
-      map_link = loc.find_locs_in_text(" ".join(cont), application.reader)
-      
+      (locs, map_link) = loc.find_locs_in_text(" ".join(cont), application.reader)
+      print locs
       #Load and show relevant template
-      self.render("document.html",related=rel, title=str(title), content=cont, tagcloud=tags, maploc=map_link)
+      self.render("document.html",related=rel, title=title, content=cont, tagcloud=tags, maploc=map_link, locations=locs)
       
 
 class LexiconDisplayer(tornado.web.RequestHandler):
@@ -211,9 +211,10 @@ class LexiconDisplayer(tornado.web.RequestHandler):
 class TermStatisticsDisplayer(tornado.web.RequestHandler):
     def get(self):
       term = self.get_argument("term")
-      freq_cont = application.reader.doc_frequency("content", term)
       
+      freq_cont = application.reader.doc_frequency("content", term)
       freq_titl = application.reader.doc_frequency("title", term)
+      
       cont = application.searcher_frequency.find("content", term, limit=max(freq_cont, 1))
       titl = application.searcher_frequency.find("title", term, limit=max(freq_titl,1))
 

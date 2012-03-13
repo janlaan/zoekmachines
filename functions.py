@@ -12,9 +12,9 @@ def get_keywords(docid, searcher, term_freq):
   scores = calc_idf_score(idf, tf)
   sorted_scores = sorted(scores.iteritems(), key=operator.itemgetter(1))
   sorted_scores.reverse()
-  sorted_scores.__class__
+  
   sorted_scores2 = []
-  print len(sorted_scores)
+  
   for i in range(len(sorted_scores)):
     if not re.search("[0-9]", sorted_scores[i][0]):
       sorted_scores2.append(sorted_scores[i])

@@ -1,13 +1,62 @@
 {% include "header.html" %}
+<script type="text/javascript" src="/static/jquery.flot.min.js"></script>
+<script type="text/javascript" src="/static/jquery.flot.axislabels.js"></script>
+<script type="text/javascript" src="/static/timeline.js"></script>
+{% if len(timeline) > 0 %}
+<script type="text/javascript">
+$(function() {
+  $.plot($("#timeline"),
+    [
+      {% for word in timeline %}
+        {
+          label: "{{ word }}",
+          data: [{% for day,val in enumerate(timeline[word]) %}
+                  [{{ day + 1 }}, {{ val }}],
+                {% end %}]
+        },
+      {% end %}
+      
+    ],
+    {
+      series: {
+        lines: {show: true},
+        points: {show: true}
+      },
+      xaxis: {
+        ticks: 30,
+        tickDecimals: 0,
+        min: 1,
+        max: 30,
+        axisLabel: "Date (in april 2007)",
+        },
+      yaxis: {
+        axisLabel: "Relative occurence (1 is average)"
+      },
+      grid: {
+        hoverable: true,
+        clickable: true
+      }
+    }
+  );
 
+});
+</script>
+{% end %}
 <h2>Search results</h2>
 <p>
 Query: {{ query }}<br />
-Number of hits: {{ num_hits }}
+Max. number of hits: {{ num_hits }}
 </p>
+{% if len(timeline) %}
+<h3>Relative occurence of the search terms </h3>
+<div id="timeline" style="height: 300px; width: 600px"></div>
+{% end %}
 <ul>
   {% for r in results %}
     <li><a href="display?docid={{ r['id'] }}">{{ r['title'] }}</a></li>
+  {% end %}
+  {% if len(results) == 0 %}
+    <li>Zero results found</li>
   {% end %}
 </ul>
 

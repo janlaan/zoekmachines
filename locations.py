@@ -1,21 +1,23 @@
 from collections import defaultdict
+import codecs
 
 class LocationFinder:
   
   """
-  Read the location database from the given text file
-  and store it in memory in a dictionary.
+  On initialization: Read the location database from the given text file
+  and store it in memory in a dictionary for fast lookup.
   """
   def __init__(self, filename):
-    f = open(filename, 'r')
+    f = codecs.open(filename, 'r', encoding='utf-8')
 
     location_data = defaultdict(list)
 
     temp_data = []
     for l in f.readlines():
       
-      #Some entries are split into two lines in the file.
-      #Save the first half and prepend that to the next line
+      # Some entries are split into multiple lines in the file.
+      # Save the first half and prepend that to the next line to s
+      # process the entry as a whole.
       if temp_data:
 	d = temp_data + l.split("\t")[1:]
       else:
@@ -25,11 +27,13 @@ class LocationFinder:
         continue
       else:
         temp_data = []
-      #Extract all possible names
+      
+      #Extract all possible names of a location
       names = [d[1]]
       if d[2]:
 	names.extend(d[2].split(","))
-      #Append data to dictionary
+	
+      #Append data to dictionary under all possible names
       for n in names:
 	location_data[n.lower().strip()].append({'id': d[0], 'name': d[1], 'type': d[4], 'pop': int(d[5]), 'lat': d[6], 'lon': d[7], 'country': d[8]})
     self.location_data = location_data
@@ -37,7 +41,7 @@ class LocationFinder:
   """
   Attempt to find a place given is name
   Return a dict with relevant data
-  (name, location, population, type)
+  (name, location, population, type, etc)
   """
   def find(self, place):
     possible_places = self.location_data[place.lower()]
@@ -59,7 +63,10 @@ class LocationFinder:
   """
   def create_google_map(self, places):
     locstring = ''
+    displayed_locs = []
+    #Create link for all locations
     for p in places:
+      displayed_locs.append(p['name'])
       locstring += '&markers=%7Ccolor:red%7Clabel:' + p['name'][0] + '%7C'
       if p['lat'] and p['lon']:
         latitude = p['lat'][0:-2] + "." + p['lat'][-2:]
@@ -70,9 +77,8 @@ class LocationFinder:
       else:
         locstring += p['name']
       
-    return "http://maps.googleapis.com/maps/api/staticmap?size=400x400" + locstring + "&zoom=3&sensor=false"
+    return (displayed_locs, "http://maps.googleapis.com/maps/api/staticmap?size=400x400" + locstring + "&zoom=3&sensor=false")
     
-  
   """
   Given a piece of text, try to find any locations within that text,
   and return a link to a google map image with those locations marked
@@ -86,9 +92,9 @@ class LocationFinder:
       if mark and word.istitle():
 	#skip common words
 	freq_cont = reader.doc_frequency("content", word.lower())
-	if freq_cont < 200:
+	if freq_cont < 2000:
 	  place = self.find(word)
-	  if place:
+	  if place and place not in found_locations:
 	    found_locations.append(place)
       mark = False
       
