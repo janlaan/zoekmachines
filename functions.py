@@ -1,14 +1,17 @@
 from load import get_term_freq_doc
 import operator
 import re
+from xml.dom import minidom
 
 """
 Returns the keywords from any given article,
 ordered by relevance according to TF / IDF score
 """
-def get_keywords(docid, searcher, term_freq):
+def get_keywords(docid, searcher, term_freq, tf=None):
   idf = term_freq
-  tf = get_term_freq_doc(docid, searcher)
+  if tf == None:
+    tf = get_term_freq_doc(docid, searcher)
+  
   scores = calc_idf_score(idf, tf)
   sorted_scores = sorted(scores.iteritems(), key=operator.itemgetter(1))
   sorted_scores.reverse()
@@ -32,3 +35,17 @@ def calc_idf_score(idf, tf):
     else:
       res[t] = tf[t] * (10000 / idf[t])
   return res
+  
+def extract_content_from_xml(path):
+  dom = minidom.parse(path)
+  lines = dom.getElementsByTagName("block")
+  
+  #Generate document body
+  cont = []
+  for l in lines:
+    if l.getAttribute("class") == "full_text":
+      for c in l.childNodes:
+        if c.firstChild:
+          cont.append(c.firstChild.nodeValue)
+          
+  return cont

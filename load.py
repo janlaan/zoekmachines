@@ -122,62 +122,86 @@ class MainHandler(tornado.web.RequestHandler):
         self.render("search.html")
 
 class SearchHandler(tornado.web.RequestHandler):
-    def post(self):
-        query = self.get_argument("query")
-        number = self.get_argument("number")
-        scoring = self.get_argument("scoring")
-        field = self.get_argument("field")
-        searcher = None
-        if scoring == "Cosine":
-          searcher = application.searcher_cosine
-        elif scoring == "PL2":
-          searcher = application.searcher_pl2
-        elif scoring == "BM25F":
-          searcher = application.searcher_bm25f
-        elif scoring == "TF_IDF":
-          searcher = application.searcher_tf_idf
-        elif scoring == "Frequency":
-          searcher = application.searcher_frequency
-        else:
-          raise Exception("Unsupported scoring method")
-        res = searcher.find(field, unicode(query), limit=int(number))
-        
-        tm = Timeline(query.split(" "), application)
-        tm_data = tm.get_data()
-        self.render("searchresults.html", query=query,num_hits=number,results=res, timeline=tm_data)
+  def get(self):
+    self.post()
+  
+  def post(self):
+    query = self.get_argument("query")
+    number = self.get_argument("number", default=10)
+    scoring = self.get_argument("scoring", default="Cosine")
+    field = self.get_argument("field", default="content")
+    searcher = None
+    if scoring == "Cosine":
+      searcher = application.searcher_cosine
+    elif scoring == "PL2":
+      searcher = application.searcher_pl2
+    elif scoring == "BM25F":
+      searcher = application.searcher_bm25f
+    elif scoring == "TF_IDF":
+      searcher = application.searcher_tf_idf
+    elif scoring == "Frequency":
+      searcher = application.searcher_frequency
+    else:
+      raise Exception("Unsupported scoring method")
+    res = searcher.find(field, unicode(query), limit=int(number))
+    
+    tm = Timeline(query.split(" "), application)
+    tm_data = tm.get_data()
+    self.render("searchresults.html", query=query,num_hits=number,results=res, timeline=tm_data)
 
 class DocumentDisplayer(tornado.web.RequestHandler):
-    def get(self):
-      global term_freq, loc
+  def get(self):
+    global term_freq, loc
+    
+    docid = self.get_argument("docid")
+    res = application.searcher_bm25f.find("id", unicode(docid))
+    path = get_relative_path(res[0]['path'])
+    searcher = application.searcher_cosine
+    
+    #Find document title and body
+    title = res[0]['title']
+    cont = extract_content_from_xml(path)
+    
+    #Generate tag cloud, related articles and map
+    tags = tagcloud.make_cloud(docid, searcher, term_freq, ' '.join(cont))
+    rel = relatedarticles.find_related(docid, searcher, term_freq)
+    (locs, map_link) = loc.find_locs_in_text(" ".join(cont), application.reader)
+    
+    #Load and show relevant template
+    self.render("document.html",related=rel, title=title, content=cont, tagcloud=tags, maploc=map_link, locations=locs)
       
-      docid = self.get_argument("docid")
-      res = application.searcher_bm25f.find("id", unicode(docid))
-      path = get_relative_path(res[0]['path'])
-      
-      searcher = application.searcher_cosine
-      
-      #Find document title and body
-      title = res[0]['title']
-      dom = minidom.parse(path)
-      lines = dom.getElementsByTagName("block")
-      
-      #Generate document body
-      cont = []
-      for l in lines:
-        if l.getAttribute("class") == "full_text":
-          for c in l.childNodes:
-            if c.firstChild:
-              cont.append(c.firstChild.nodeValue)
-
-      #Generate tag cloud, related articles and map
-      tags = tagcloud.make_cloud(docid, searcher, term_freq, ' '.join(cont))
-      rel = relatedarticles.find_related(docid, searcher, term_freq)
-      (locs, map_link) = loc.find_locs_in_text(" ".join(cont), application.reader)
-      print locs
-      #Load and show relevant template
-      self.render("document.html",related=rel, title=title, content=cont, tagcloud=tags, maploc=map_link, locations=locs)
-      
-
+class TermCloudDisplayer(tornado.web.RequestHandler):
+  
+  def get(self):
+    global term_freq
+    
+    term = self.get_argument("term")
+    day = int(self.get_argument("day"))
+    
+    #Fetch all articles for the given day, with the given term
+    datefilter = query.Term("pubdate", unicode("200704{0:02d}T000000".format(day)))
+    day_articles = application.searcher_frequency.find("content", term, limit=9999, filter=datefilter)
+    #day_articles = application.searcher_bm25f.find("pubdate", unicode("200704{0:02d}T000000".format(day)), limit=9999)
+    
+    #Combine all term frequencies
+    tf = defaultdict(int)
+    cont = []
+    #titles = []
+    for d in day_articles:
+      #titles.append(d['title'])
+      doc_freq = get_term_freq_doc(d['id'],application.searcher_cosine)
+      cont.extend(extract_content_from_xml(get_relative_path(d['path'])))
+      for k in doc_freq:
+        tf[k] += doc_freq[k]
+    #pprint(titles)
+    
+    #Generate a wordcloud for the combined articles
+    tags = tagcloud.make_cloud(0, None, term_freq, ' '.join(cont), tf)
+    
+    #Load and show relevant template
+    self.render("termcloud.html",term=term, day=day, tagcloud=tags)
+    
+    
 class LexiconDisplayer(tornado.web.RequestHandler):
     def get(self):
       self.post()
@@ -397,7 +421,8 @@ if __name__ == "__main__":
       (r"/lexdisplay", LexiconDisplayer),
       (r"/close", Closer),
       (r"/index", Indexer),
-      (r"/termstat", TermStatisticsDisplayer)
+      (r"/termstat", TermStatisticsDisplayer),
+      (r"/termcloud", TermCloudDisplayer)
   ], **settings)
   application.index = index
   application.indexdir = indexdir

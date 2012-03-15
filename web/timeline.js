@@ -29,15 +29,15 @@ $(function() {
     }
     else {
       $("#tooltip").remove();
-      previousPoint = null;s
+      previousPoint = null;
     }
   });
 
   $("#timeline").bind("plotclick", function (event, pos, item) {
         if (item) {
-            $("#clickdata").text("You clicked point " + item.dataIndex + " in " + item.series.label + ". with value " + item.datapoint[1]);
-            //location.href = ;
-            plot.highlight(item.series, item.datapoint);
+            //$("#clickdata").text("You clicked point " + item.dataIndex + " in " + item.series.label + ". with value " + item.datapoint[1]);
+            //plot.highlight(item.series, item.datapoint);
+            location.href = '/termcloud?term=' + item.series.label + '&day=' + (item.dataIndex + 1);
         }
     });
 });

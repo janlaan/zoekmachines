@@ -1,0 +1,25 @@
+{% include "header.html" %}
+
+
+<h3>Term cloud for {{ term }}</h3>
+<a href="/search?query={{ term }}">&laquo; back to search results</a>
+Showing the most important term of {{ day }} April 2007
+
+
+<div id="ac">
+    <applet 
+      name="wordle"
+      mayscript="mayscript"
+      code="wordle.WordleApplet.class"
+      codebase="http://wordle.appspot.com"
+      archive="/j/v1356/wordle.jar" 
+      width="800" height="600">
+      <param name="wordcounts" value="{{ tagcloud }}"/>
+      <param name="java_arguments" value="-Xmx256m -Xms64m">
+      Your browser doesn\'t seem to understand the APPLET tag.
+      You need to install and enable the <a href="http://java.com/">Java</a> plugin.
+    </applet>
+  </div>
+</div>
+
+{% include "footer.html" %}

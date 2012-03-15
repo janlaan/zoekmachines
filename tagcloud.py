@@ -9,8 +9,8 @@ Creates a tag cloud for the given article
 Returns code for a wordle applet
 Applet from http://www.wordle.com
 """
-def make_cloud(docid, searcher, term_freq, cont):
-  sorted_words = get_keywords(docid, searcher, term_freq)
+def make_cloud(docid, searcher, term_freq, cont, tf=None):
+  sorted_words = get_keywords(docid, searcher, term_freq, tf)
   
   output = ''
   for i in range(0,10):
