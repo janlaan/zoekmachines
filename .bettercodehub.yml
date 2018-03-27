@@ -1,0 +1,9 @@
+component_depth: 1
+languages:
+- python
+- javascript
+- script
+exclude:
+- .*/fietstas_rest\.py
+- .*/jquery.*\.js
+
