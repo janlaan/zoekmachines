@@ -4,6 +4,6 @@ languages:
 - javascript
 - script
 exclude:
-- .*/fietstas_rest\.py
-- .*/jquery.*\.js
+- /fietstas_rest\.py
+- /web/jquery.*\.js
 
